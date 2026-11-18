@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#0e1013" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <title>ChatPig 手机助手</title>
+  <link rel="stylesheet" href="/style.css?v=20261117d" />
+</head>
+<body>
+  <div id="offline" class="banner hidden">
+    <span id="offline-text">连不上电脑…</span>
+    <button id="relaunch" class="ghost small">重新拉起</button>
+  </div>
+
+  <!-- 会话列表 -->
+  <section id="list-view" class="view">
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot" id="status-dot"></span>
+        <h1>ChatPig</h1>
+      </div>
+      <div class="topbar-actions">
+        <button id="refresh" class="ghost small" aria-label="刷新">刷新</button>
+        <button id="new-chat" class="primary small">新会话</button>
+      </div>
+    </header>
+    <div class="search-wrap">
+      <input id="search" type="search" placeholder="搜索会话" autocomplete="off" />
+    </div>
+    <div id="threads" class="threads"></div>
+  </section>
+
+  <!-- 对话 -->
+  <section id="chat-view" class="view hidden">
+    <header class="topbar">
+      <button id="back" class="ghost" aria-label="返回">‹</button>
+      <h2 id="chat-title" class="ellipsis">对话</h2>
+      <span id="gen-pill" class="pill hidden">生成中…</span>
+    </header>
+    <div id="messages" class="messages"></div>
+    <button id="to-bottom" class="fab hidden" aria-label="回到底部">↓</button>
+    <div id="approval-bar" class="approval-bar hidden">
+      <span id="approval-text" class="ellipsis">电脑上的 ChatGPT 在等你确认</span>
+      <button id="approval-deny" class="ghost small">拒绝</button>
+      <button id="approval-allow" class="primary small">允许</button>
+    </div>
+    <div class="chips">
+      <button id="changes-chip" class="chip hidden" aria-label="查看改动文件">📄 改动</button>
+      <button id="attach" class="chip" aria-label="添加附件">＋ 附件</button>
+      <button id="workspace-chip" class="chip ellipsis" aria-label="切换工作区">📁 工作区</button>
+      <button id="model-chip" class="chip ellipsis" aria-label="切换模型">🧠 模型…</button>
+      <button id="perm-chip" class="chip ellipsis" aria-label="切换权限">🔐 权限…</button>
+    </div>
+    <input id="file" type="file" multiple hidden />
+    <form id="composer" class="composer">
+      <button id="mic" type="button" class="ghost mic" aria-label="语音输入">🎤</button>
+      <textarea id="input" rows="1" placeholder="发消息给电脑上的 ChatGPT…" enterkeyhint="send"></textarea>
+      <button id="send" type="submit" class="primary send" aria-label="发送">↑</button>
+      <button id="stop" type="button" class="danger stop hidden" aria-label="停止">■</button>
+    </form>
+  </section>
+
+  <!-- 底部操作面板（会话 / 模型 / 权限 共用） -->
+  <div id="sheet" class="sheet hidden">
+    <div class="sheet-inner">
+      <div id="sheet-title" class="sheet-title ellipsis">操作</div>
+      <div id="sheet-actions" class="sheet-actions"></div>
+    </div>
+  </div>
+
+  <!-- 改动文件全屏查看 -->
+  <div id="diff-view" class="diff-view hidden">
+    <header class="topbar">
+      <button id="diff-close" class="ghost" aria-label="关闭">‹</button>
+      <h2 class="ellipsis">改动文件</h2>
+      <button id="diff-files" class="ghost small">文件</button>
+    </header>
+    <div id="diff-files-list" class="diff-files"></div>
+    <pre id="diff-text" class="diff-text"></pre>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/app.js?v=20261117d"></script>
+</body>
+</html>

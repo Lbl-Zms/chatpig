@@ -1,0 +1,29 @@
+# 运行时生成，不要提交
+config.json
+uploads/
+.tmp/
+配对二维码.png
+ChatPig手机助手.apk
+
+# 构建产物
+android/build/
+android/toolchain/
+android/keystore.jks
+android/*.jks
+android/build.log
+
+# 系统
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# apksigner ��ǩ�������ļ�
+*.idsig
+
+
+# ��ʱ
+.gh-auth.log
+
+
+publish.cmd
+

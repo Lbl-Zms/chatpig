@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ChatPig手机助手</string>
+    <string name="hint_offline">连不上电脑\n\n请确认：\n1. 手机上的 Tailscale 已打开\n2. 电脑没关机，服务在运行</string>
+</resources>
