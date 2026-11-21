@@ -11,19 +11,29 @@ rem   android\toolchain\platform\android-34\android.jar
 rem 见 docs\tutorial.md 的「自己打 APK」一节，里面有下载地址和目录结构。
 rem ---------------------------------------------------------------------------
 
-set "JDK=%~dp0toolchain\jdk\jdk-17.0.21+9"
-set "BT=%~dp0toolchain\buildtools\android-14"
-set "PLAT=%~dp0toolchain\platform\android-34\android.jar"
+rem 自动探测工具链（不写死版本号，换成别的 JDK / build-tools 也能用）
+set "JDK="
+for /d %%D in ("%~dp0toolchain\jdk\*") do if exist "%%~fD\bin\javac.exe" set "JDK=%%~fD"
+set "BT="
+for /d %%D in ("%~dp0toolchain\buildtools\*") do if exist "%%~fD\aapt2.exe" set "BT=%%~fD"
+set "PLAT="
+for /d %%D in ("%~dp0toolchain\platform\*") do if exist "%%~fD\android.jar" set "PLAT=%%~fD\android.jar"
 
-if not exist "%JDK%\bin\javac.exe" (
+if not defined JDK (
   echo.
-  echo   找不到 JDK：%JDK%
+  echo   找不到 JDK：toolchain\jdk\*\bin\javac.exe
   echo   请按 docs\tutorial.md 准备工具链后重试。
   exit /b 1
 )
-if not exist "%PLAT%" (
+if not defined BT (
   echo.
-  echo   找不到 android.jar：%PLAT%
+  echo   找不到 build-tools：toolchain\buildtools\*\aapt2.exe
+  echo   请按 docs\tutorial.md 准备工具链后重试。
+  exit /b 1
+)
+if not defined PLAT (
+  echo.
+  echo   找不到 android.jar：toolchain\platform\...\android.jar
   echo   请按 docs\tutorial.md 准备工具链后重试。
   exit /b 1
 )
