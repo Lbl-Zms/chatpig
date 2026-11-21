@@ -83,7 +83,7 @@ APK 不是必须的（浏览器版功能一样），但想要**原生后台通�
 
 ```
 android/toolchain/
-├── jdk/jdk-17.0.21+9/          ← 解压的 JDK 17
+├── jdk/jdk-17.x/               ← 解压的 JDK 17（版本号随意，脚本自动探测）
 ├── buildtools/android-14/      ← Android build-tools 34
 └── platform/android-34/android.jar
 ```
@@ -101,7 +101,7 @@ android/toolchain/
 最终 `build-apk.cmd` 需要这三个路径都存在：
 
 ```
-toolchain\jdk\jdk-17.0.21+9\bin\javac.exe
+toolchain\jdk\<任意 JDK 17>\bin\javac.exe
 toolchain\buildtools\android-14\aapt2.exe
 toolchain\platform\android-34\android.jar
 ```
