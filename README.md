@@ -6,6 +6,8 @@
 
 <p align="center"><img src="docs/assets/icon.png" width="120" alt="ChatPig"></p>
 
+<p align="center"><img src="docs/assets/chat.png" width="320" alt="手机端界面"></p>
+
 ---
 
 ## 它能做什么
