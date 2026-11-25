@@ -46,11 +46,18 @@ function newPin() {
 function loadConfig() {
   let cfg = { ...DEFAULTS };
   if (fs.existsSync(CONFIG_FILE)) {
-    try { Object.assign(cfg, JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'))); } catch {}
+    try {
+      // 去掉 BOM：记事本/PowerShell 保存的 UTF-8 带 BOM，JSON.parse 读不了会把 token、配对码重置掉
+      const text = fs.readFileSync(CONFIG_FILE, 'utf8').replace(/^\uFEFF/, '');
+      Object.assign(cfg, JSON.parse(text));
+    } catch {}
   }
   if (!cfg.token) cfg.token = crypto.randomBytes(16).toString('hex');
   if (!cfg.pin) cfg.pin = newPin();
-  if (!cfg.chatgptExe) cfg.chatgptExe = findChatgptExe();
+  if (!cfg.chatgptExe || !fs.existsSync(cfg.chatgptExe)) {
+    const found = findChatgptExe();
+    if (found) cfg.chatgptExe = found;
+  }
   if (!cfg.cloudflared) cfg.cloudflared = path.join(ROOT, 'bin', 'cloudflared.exe');
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2));
   return cfg;
@@ -58,14 +65,49 @@ function loadConfig() {
 
 function findChatgptExe() {
   const base = 'C:\\Program Files\\WindowsApps';
+  // 1) 直接列目录（WindowsApps 的 ACL 有时不允许，失败就走第 2 步）
   try {
-    const dirs = fs.readdirSync(base).filter((d) => /^OpenAI\.Codex_/i.test(d)).sort();
-    for (const d of dirs.reverse()) {
+    const dirs = fs.readdirSync(base).filter((d) => /^OpenAI\.Codex_/i.test(d));
+    for (const d of dirs.sort().reverse()) {
       const exe = path.join(base, d, 'app', 'ChatGPT.exe');
       if (fs.existsSync(exe)) return exe;
     }
   } catch {}
-  return 'C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1111.2228.0_x64__2p2nqsd0c76g0\\app\\ChatGPT.exe';
+  // 2) 问 Appx：桌面版每次更新都会换版本号目录，这条路不受 ACL 影响
+  try {
+    const out = execFileSync(
+      'powershell',
+      ['-NoProfile', '-Command',
+        '(Get-AppxPackage -Name OpenAI.Codex | Sort-Object Version -Descending | Select-Object -First 1).InstallLocation'],
+      { encoding: 'utf8', timeout: 10000, windowsHide: true },
+    ).trim();
+    if (out) {
+      const exe = path.join(out, 'app', 'ChatGPT.exe');
+      if (fs.existsSync(exe)) return exe;
+    }
+  } catch {}
+  return '';
+}
+
+/** 拉起 ChatGPT（带调试端口）；路径失效会自动重找，失败也不会拖垮服务 */
+function spawnChatgpt(extraArgs) {
+  if (!CFG.chatgptExe || !fs.existsSync(CFG.chatgptExe)) {
+    const found = findChatgptExe();
+    if (found) CFG.chatgptExe = found;
+  }
+  if (!CFG.chatgptExe || !fs.existsSync(CFG.chatgptExe)) {
+    console.log('  [自动] 找不到 ChatGPT.exe，跳过启动（界面里点「重启」可手动重试）');
+    return false;
+  }
+  try {
+    const child = spawn(CFG.chatgptExe, extraArgs, { detached: true, stdio: 'ignore', windowsHide: false });
+    child.on('error', (e) => console.log('  [自动] 启动 ChatGPT 失败：' + e.message));
+    child.unref();
+    return true;
+  } catch (e) {
+    console.log('  [自动] 启动 ChatGPT 失败：' + e.message);
+    return false;
+  }
 }
 
 const CFG = loadConfig();
@@ -870,8 +912,7 @@ function killChatgpt() {
 
 function launchChatgptDebug() {
   try {
-    spawn(CFG.chatgptExe, [`--remote-debugging-port=${CFG.cdpPort}`], { detached: true, stdio: 'ignore', windowsHide: false }).unref();
-    return true;
+    return spawnChatgpt([`--remote-debugging-port=${CFG.cdpPort}`]);
   } catch {
     return false;
   }
@@ -1548,7 +1589,7 @@ const server = http.createServer(async (req, res) => {
         killer.on('error', resolve);
       });
       await new Promise((r) => setTimeout(r, 2500));
-      spawn(CFG.chatgptExe, [`--remote-debugging-port=${CFG.cdpPort}`], { detached: true, stdio: 'ignore' }).unref();
+      spawnChatgpt([`--remote-debugging-port=${CFG.cdpPort}`]);
       // ChatGPT 启动要 30–60 秒
       return json(res, 200, { ok: true, note: '已重新拉起，约 40 秒后可用' });
     } catch (e) {
